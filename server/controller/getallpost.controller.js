@@ -66,9 +66,6 @@ import User from "../model/user.model.js";
 export const getallpost = async (req, res) => {
   try {
     const userdetail = req.user;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 5;
-    const startIndex = (page - 1) * limit;
 
     if (userdetail) {
       const posts = await Post.find({})
@@ -109,20 +106,19 @@ export const getallpost = async (req, res) => {
           },
           options: { strictPopulate: false },
         })
-        .sort({ createdAt: -1 })
-        .limit(limit)
-        .skip(startIndex)
+        .sort({ createdAt: -1 }) // newest first
         .exec();
+
       return res.status(200).json({
         success: true,
-        message: "all post fatched successfully",
+        message: "All posts fetched successfully",
         posts: posts,
       });
     }
   } catch (error) {
     return res.status(400).json({
       success: false,
-      message: `something want wrong and error is ${error}`,
+      message: `Something went wrong: ${error.message}`,
     });
   }
 };

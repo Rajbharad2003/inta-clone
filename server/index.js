@@ -9,6 +9,9 @@ import chatRoutes from "./routers/chatRoutes.js";
 import messageRoutes from "./routers/messageRoutes.js";
 import user from "./routers/user.js";
 import cloudinaryConnect from "./utils/cloudinary.js";
+import cron from 'node-cron';
+import Story from "./model/story.model.js";
+
 dotenv.config();
 
 databaseconnection();
@@ -46,19 +49,19 @@ app.use("/user", user);
 app.use("/api/chat", chatRoutes);
 app.use("/api/message", messageRoutes);
 
-// cron.schedule('*/3 * * * *', async () => {
-//   try {
-//     const threeMinutesAgo = new Date();
-//     threeMinutesAgo.setMinutes(threeMinutesAgo.getMinutes() - 59);
-//     // Assuming 'Story' is your Mongoose model
-//     await Story.deleteMany({ createdAt: { $lt: threeMinutesAgo } });
-//     console.log('Expired stories removed.');
-//   } catch (err) {
-//     console.error('Error removing expired stories:', err.message);
-//   }
-// }, {
-//   timezone: 'Asia/Kolkata',
-// });
+cron.schedule('*/3 * * * *', async () => {
+  try {
+    const twentyFourHoursAgo = new Date();
+    twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
+    await Story.deleteMany({ createdAt: { $lt: twentyFourHoursAgo } });
+    console.log('Expired stories (24hr) removed.');
+  } catch (err) {
+    console.error('Error removing expired stories:', err.message);
+  }
+}, {
+  timezone: 'Asia/Kolkata',
+});
+
 
 const port = process.env.PORT || 5555;
 const server = app.listen(port, () => {

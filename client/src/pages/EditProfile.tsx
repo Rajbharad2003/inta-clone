@@ -63,7 +63,7 @@ const EditProfile = () => {
           username: profile.user.username || "",
           fullName: `${profile.user.firstName || ""} ${profile.user.lastName || ""}`.trim(),
           website: profile.user.website || "",
-          bio: profile.profile.bio || "",
+          bio: profile.user.profile.bio || "",
           email: profile.user.email || "",
           phone: profile.user.phone || "",
           gender: profile.user.gender || ""
@@ -125,12 +125,15 @@ const EditProfile = () => {
         username: formData.username,
         firstName: firstName,
         lastName: lastName,
+        profile : {
         website: formData.website,
         bio: formData.bio,
-        email: formData.email,
         phone: formData.phone,
         gender: formData.gender
+        },
+        email: formData.email,
       };
+
       localStorage.setItem('user', JSON.stringify(updatedUser));
 
       toast({
