@@ -1,20 +1,15 @@
 import Profile from "../model/profile.model.js";
 import User from "../model/user.model.js";
 import uploadImageToCloudinary from "../utils/imageUploader.js";
-import mongoose from "mongoose";
+import bcrypt from "bcrypt";
 export const editprofile = async (req, res) => {
   try {
-    const profilename = req.body.formData.profilename;
-    const bio = req.body.formData.bio;
-    const userid = req.user.userid;
-    const userdetails = await User.findById(userid);
-    if (userdetails) {
-      const profileid = userdetails.profile;
-      const profileUpdate = await Profile.findById(profileid)
+    const bio = req.body.bio;
+    const userdetails = await User.find({ email: req.body.email });
 
-      if (profilename) {
-        profileUpdate.profilename = profilename;
-      }
+    if (userdetails) {
+      const profileid = userdetails[0].profile;
+      const profileUpdate = await Profile.findById(profileid)
 
       if (bio !== undefined) {
         profileUpdate.bio = bio ? bio : "";
@@ -31,38 +26,38 @@ export const editprofile = async (req, res) => {
       // );
       await profileUpdate.save();
       const updatedUser = await User.findOne({ profile: profileid }).populate({
-            path: "profile",
-            populate: [
-              { path: "posts", model: "Post" },
-              {
-                path: "followers",
-                model: "User",
-                select: '-password',
-                populate: {
-                  path: "profile",
-                  model: "Profile",
-                },
-              },
-              {
-                path: "following",
-                model: "User",
-                select: '-password',
-                populate: {
-                  path: "profile",
-                  model: "Profile",
-                },
-              },
-              {
-                path: "saved",
-                model: "Post",
-              },
-            ],
-          });
+        path: "profile",
+        populate: [
+          { path: "posts", model: "Post" },
+          {
+            path: "followers",
+            model: "User",
+            select: '-password',
+            populate: {
+              path: "profile",
+              model: "Profile",
+            },
+          },
+          {
+            path: "following",
+            model: "User",
+            select: '-password',
+            populate: {
+              path: "profile",
+              model: "Profile",
+            },
+          },
+          {
+            path: "saved",
+            model: "Post",
+          },
+        ],
+      });
       return res.status(200).json({
         success: true,
         message: "Profile updated successfully",
         // profile: updatesprofile,
-        data:updatedUser
+        data: updatedUser
       });
     } else {
       return res.status(404).json({
@@ -82,19 +77,19 @@ export const editProfilePicture = async (req, res) => {
   try {
     const displayPicture = req.files.displayPicture;
     const userid = req.params.id;
-    const user=await User.findById(userid)
-    if(!user){
+    const user = await User.findById(userid)
+    if (!user) {
       return res.status(404).json({
-        suucess:false,
-        message:"user does not exist"
+        suucess: false,
+        message: "user does not exist"
       })
     }
-    console.log("displaypicture",displayPicture)
+    console.log("displaypicture", displayPicture)
     const image = await uploadImageToCloudinary(
       displayPicture,
       process.env.FOLDER_NAME
     );
-    const profileId=user.profile
+    const profileId = user.profile
     // const profile = await Profile.findById(profileId);
     // console.log(" profile", profile);
 
@@ -143,3 +138,33 @@ export const editProfilePicture = async (req, res) => {
   }
 };
 
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword, userId } = req.body;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+    const isPasswordMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Current password is incorrect",
+      });
+    }
+    user.password = newPassword;
+    await user.save();
+    return res.status(200).json({
+      success: true,
+      message: "Password changed successfully",
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: `Something went wrong while changing password. Error: ${error}`,
+    });
+  }
+}

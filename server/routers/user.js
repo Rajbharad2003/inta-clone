@@ -7,6 +7,7 @@ import { createpost } from "../controller/createpost.controller.js";
 import {
   editprofile,
   editProfilePicture,
+  changePassword,
 } from "../controller/editprofile.controller.js";
 import { follow, removefollow } from "../controller/folllower.controller.js";
 import { getallpost } from "../controller/getallpost.controller.js";
@@ -49,6 +50,7 @@ router.post("/batchUsers",auth, getBatchUser);
 router.post("/batchPosts",auth, getBatchPost);
 router.put("/editprofile", auth, editprofile);
 router.put("/editProfilePicture/:id", auth, editProfilePicture);
+router.put("/changePassword", auth, changePassword);
 router.get("/getprofile", auth, getprofile);
 router.get("/getprofilebyid/:profileid", auth, getprofilebyid);
 router.get("/getUserProfileById/:userId", auth, getUserProfileById);
