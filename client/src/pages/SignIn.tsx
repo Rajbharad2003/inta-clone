@@ -10,6 +10,7 @@ const SignIn = () => {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [credentials, setCredentials] = useState(true);
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -87,6 +88,7 @@ const SignIn = () => {
         description: error.message || "Something went wrong. Please try again.",
         variant: "destructive",
       });
+      setCredentials(false);
     } finally {
       setLoading(false);
     }
@@ -100,6 +102,10 @@ const SignIn = () => {
           <div className="flex flex-col items-center">
             <Instagram className="h-12 w-12 text-black mb-1" />
             <h2 className="text-2xl font-serif tracking-wide text-center">Instagram</h2>
+            <p>Sign in to see photos and videos from your friends</p>
+            {!credentials && (
+              <p className="text-red-500 text-sm mt-2">Invalid credentials. Please try again.</p>
+            )}
           </div>
           
           {/* Sign In Form */}
@@ -115,7 +121,7 @@ const SignIn = () => {
                   className="h-11"
                   placeholder="Email or username"
                   value={identifier}
-                  onChange={(e) => setIdentifier(e.target.value)}
+                  onChange={(e) => {setIdentifier(e.target.value); setCredentials(true);}}
                 />
               </div>
               <div>
@@ -128,7 +134,7 @@ const SignIn = () => {
                   className="h-11"
                   placeholder="Password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {setPassword(e.target.value); setCredentials(true);}}
                 />
               </div>
             </div>

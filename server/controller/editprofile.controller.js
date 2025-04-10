@@ -12,6 +12,8 @@ export const editprofile = async (req, res) => {
       const profileUpdate = await Profile.findById(profileid)
 
       if (bio !== undefined) {
+        console.log("bio 1: ", bio);
+
         profileUpdate.bio = bio ? bio : "";
       }
 

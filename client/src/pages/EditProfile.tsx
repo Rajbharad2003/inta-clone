@@ -42,6 +42,7 @@ const EditProfile = () => {
           phone: user.phone || "",
           gender: user.gender || ""
         });
+        console.log("Loaded user data from localStorage:", user);
         setLoading(false);
       } catch (error) {
         console.error("Error parsing user data:", error);
@@ -56,11 +57,13 @@ const EditProfile = () => {
           setProfilePhoto(profile.profile.profilephoto);
         }
 
+        // console.log("Fetched profile data:", profile);
+
         setFormData({
           username: profile.user.username || "",
           fullName: `${profile.user.firstName || ""} ${profile.user.lastName || ""}`.trim(),
           website: profile.user.website || "",
-          bio: profile.user.profile.bio || "",
+          bio: profile.profile.bio || "",
           email: profile.user.email || "",
           phone: profile.user.phone || "",
           gender: profile.user.gender || ""
@@ -79,7 +82,7 @@ const EditProfile = () => {
 
     fetchProfile();
     document.title = "Edit Profile • Instagram";
-  }, [toast]);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;

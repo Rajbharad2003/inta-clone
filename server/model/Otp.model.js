@@ -16,25 +16,25 @@ const OtpScema = mongoose.Schema({
     expires: 60 * 5,
   },
 });
-const sendVerificationEmail = async (email, otp) => {
-  try {
-    const mailresponse = await mailSender(
-      email,
-      "Verification Email",
-      otpTemplate(otp)
-    );
-    console.log("mailresponse is", mailresponse);
-    console.log("Email sent successfully: ", mailresponse?.response);
-  } catch (error) {
-    console.log("error occurred while sending email and error is", error);
-    throw error;
-  }
-};
-OtpScema.pre("save", async function (next) {
-  if (this.isNew) {
-    await sendVerificationEmail(this.email, this.otp);
-  }
-  next();
-});
+// const sendVerificationEmail = async (email, otp) => {
+//   try {
+//     const mailresponse = await mailSender(
+//       email,
+//       "Verification Email",
+//       otpTemplate(otp)
+//     );
+//     console.log("mailresponse is", mailresponse);
+//     console.log("Email sent successfully: ", mailresponse?.response);
+//   } catch (error) {
+//     console.log("error occurred while sending email and error is", error);
+//     throw error;
+//   }
+// };
+// OtpScema.pre("save", async function (next) {
+//   if (this.isNew) {
+//     await sendVerificationEmail(this.email, this.otp);
+//   }
+//   next();
+// });
 const OTP = mongoose.model("OTP", OtpScema);
 export default OTP;

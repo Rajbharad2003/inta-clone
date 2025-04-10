@@ -19,7 +19,7 @@ const handleResponse = async (response: Response) => {
     }
     throw new Error(errorMessage);
   }
-  
+
   // Parse JSON response, handling potential variations in response format
   const data = await response.json();
   return data;
@@ -34,23 +34,23 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
     const url = `${API_BASE_URL}${endpoint}`;
     const token = getAuthToken();
     // console.log("Using token:", token);
-    
+
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
       ...options.headers,
     };
-    
+
     // Add authorization token if available - without 'Bearer' prefix
     if (token) {
       headers['Authorization'] = token; // Remove 'Bearer' prefix as requested
     }
-    
+
     const response = await fetch(url, {
       ...options,
       headers,
       credentials: 'include',
     });
-    
+
     return await handleResponse(response);
   } catch (error) {
     console.error(`API request failed: ${endpoint}`, error);
@@ -63,11 +63,11 @@ const apiRequest = async (endpoint: string, options: RequestInit = {}) => {
 const uploadFileRequest = (url: string, formData: FormData) => {
   const token = getAuthToken();
   const headers: HeadersInit = {};
-  
+
   if (token) {
     headers['Authorization'] = token; // Remove 'Bearer' prefix
   }
-  
+
   return fetch(`${API_BASE_URL}${url}`, {
     method: 'POST',
     body: formData,
@@ -78,53 +78,53 @@ const uploadFileRequest = (url: string, formData: FormData) => {
 
 // Authentication
 export const authApi = {
-  sendOtp: (email: string) => 
+  sendOtp: (email: string) =>
     apiRequest('/user/sendotp', {
       method: 'POST',
       body: JSON.stringify({ email }),
     }),
-    
-  signup: (userData: { 
-    firstName: string; 
-    lastName: string; 
-    email: string; 
-    username: string; 
-    password: string; 
+
+  signup: (userData: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    username: string;
+    password: string;
     otp: string;
-  }) => 
+  }) =>
     apiRequest('/user/signup', {
       method: 'POST',
       body: JSON.stringify(userData),
     }),
-    
-  login: (identifier: string, password: string) => 
+
+  login: (identifier: string, password: string) =>
     apiRequest('/user/login', {
       method: 'POST',
       body: JSON.stringify({ identifier, password }),
     }),
-    
-  getUser: () => 
+
+  getUser: () =>
     apiRequest('/user/getuser'),
-    
-  getUserById: (userId: string) => 
+
+  getUserById: (userId: string) =>
     apiRequest(`/user/getuserbyid/${userId}`),
 
   getBatchUserById: (userIds: string[]) =>
     apiRequest('/user/batchUsers', {
-      method: 'POST', 
+      method: 'POST',
       body: JSON.stringify({ userIds }),
     }),
 };
 
-const uploadImageToCloudnary = async (postData : FormData) => {
+const uploadImageToCloudnary = async (postData: FormData) => {
   const data = new FormData();
-  console.log("data : ",postData.get('posturl'));
+  console.log("data : ", postData.get('posturl'));
   data.append("file", postData.get('posturl'));
-  console.log("file : ",data.get('file'));
+  console.log("file : ", data.get('file'));
   data.append("upload_preset", preset);
   data.append("cloud_name", cloudname);
   console.log("uploading");
-  console.log("data : ",data);
+  console.log("data : ", data);
   const response = await fetch(
     `http://api.cloudinary.com/v1_1/${cloudname}/image/upload`,
     {
@@ -133,7 +133,7 @@ const uploadImageToCloudnary = async (postData : FormData) => {
     }
   );
   console.log("uploaded");
-  console.log("response : ",response);
+  console.log("response : ", response);
 
   if (!response.ok) {
     throw new Error(`Image upload failed with status: ${response.status}`);
@@ -147,18 +147,17 @@ export const postsApi = {
     const responseData = await uploadImageToCloudnary(postData);
     const token = getAuthToken();
     const headers: HeadersInit = {};
-  
+
     if (token) {
       headers['Authorization'] = token; // Remove 'Bearer' prefix
     }
     // For file uploads without Bearer prefix
     const formData = new FormData();
-    if(responseData.url)
-    {
+    if (responseData.url) {
       formData.append('posturl', responseData.url);
     }
-    
-    formData.append('caption',  postData.get('caption'));
+
+    formData.append('caption', postData.get('caption'));
 
     return fetch(`${API_BASE_URL}/user/createpost`, {
       method: 'POST',
@@ -168,59 +167,65 @@ export const postsApi = {
     }).then(handleResponse);
 
   },
-    
-  getAllPosts: () => 
+
+  getAllPosts: () =>
     apiRequest('/user/getallpost'),
-    
-  getPostById: (postId: string) => 
+
+  getPostById: (postId: string) =>
     apiRequest(`/user/getPostByid/${postId}`),
-    
-  likePost: (postId: string) => 
+
+  likePost: (postId: string) =>
     apiRequest(`/user/likepost/${postId}`, {
       method: 'POST',
     }),
-    
-  getLikePost: (postId: string) => 
+
+  getLikePost: (postId: string) =>
     apiRequest(`/user/getlikepost/${postId}`),
-    
-  commentPost: (postId: string, comment: string) => 
+
+  commentPost: (postId: string, comment: string) =>
     apiRequest(`/user/commentpost/${postId}`, {
       method: 'POST',
       body: JSON.stringify({ comment }),
     }),
-    
-  savePost: (postId: string) => 
+
+  savePost: (postId: string) =>
     apiRequest(`/user/savedpost/${postId}`, {
       method: 'POST',
     }),
-    
-  checkSavedPost: (postId: string) => 
+
+  checkSavedPost: (postId: string) =>
     apiRequest(`/user/${postId}/isSaved`),
 
   getBatchPostsById: (postIds: string[]) =>
     apiRequest('/user/batchPosts', {
-      method: 'POST', 
+      method: 'POST',
       body: JSON.stringify({ postIds }),
     }),
 };
 
 // User profiles
 export const profileApi = {
-  getProfile: () => 
+  getProfile: () =>
     apiRequest('/user/getprofile'),
-    
-  getProfileById: (profileId: string) => 
+
+  getProfileById: (profileId: string) =>
     apiRequest(`/user/getprofilebyid/${profileId}`),
 
-  getUserProfileById: (userId: string) => 
+  getUserProfileById: (userId: string) =>
     apiRequest(`/user/getUserProfileById/${userId}`),
-    
-  editProfile: (profileData: any) => 
+
+  editProfile: (profileData: any) =>
     apiRequest('/user/editprofile', {
       method: 'PUT',
       body: JSON.stringify(profileData),
     }),
-    
+
+  changePassword: (passwordData: any) =>
+    apiRequest('/user/changePassword', {
+      method: 'PUT',
+      body: JSON.stringify(passwordData),
+    }),
+
   editProfilePicture: (userId: string, imageData: FormData) => {
     const token = getAuthToken();
     return fetch(`${API_BASE_URL}/user/editProfilePicture/${userId}`, {
@@ -229,21 +234,21 @@ export const profileApi = {
       headers: token ? { 'Authorization': token } : undefined,
     }).then(handleResponse);
   },
-    
-  followUser: (followId: string) => 
+
+  followUser: (followId: string) =>
     apiRequest(`/user/follow/${followId}`, {
       method: 'POST',
     }),
-    
-  unfollowUser: (followId: string) => 
+
+  unfollowUser: (followId: string) =>
     apiRequest(`/user/removefollow/${followId}`, {
       method: 'POST',
     }),
-    
-  getAllUsers: () => 
+
+  getAllUsers: () =>
     apiRequest('/user/getalluser'),
 
-  searchUsers: (query: string) => 
+  searchUsers: (query: string) =>
     apiRequest(`/user/search?query=${encodeURIComponent(query)}`),
 };
 
@@ -253,19 +258,18 @@ export const storiesApi = {
     const responseData = await uploadImageToCloudnary(storyData);
     const token = getAuthToken();
     const headers: HeadersInit = {};
-  
-    console.log("responseData : ",responseData);
+
+    console.log("responseData : ", responseData);
     if (token) {
       headers['Authorization'] = token; // Remove 'Bearer' prefix
     }
     // For file uploads without Bearer prefix
     const formData = new FormData();
-    if(responseData.url)
-    {
+    if (responseData.url) {
       formData.append('mediaUrl', responseData.url);
     }
-    
-    formData.append('mediaType',  storyData.get('mediaType'));
+
+    formData.append('mediaType', storyData.get('mediaType'));
 
     return fetch(`${API_BASE_URL}/user/createStory`, {
       method: 'POST',
@@ -274,20 +278,20 @@ export const storiesApi = {
       credentials: 'include',
     }).then(handleResponse);
   },
-    
-  getAllStories: () => 
+
+  getAllStories: () =>
     apiRequest('/user/getAllStory'),
-    
-  getStoryById: (storyId: string) => 
+
+  getStoryById: (storyId: string) =>
     apiRequest(`/user/getStoryById/${storyId}`),
-    
-  getUserStories: () => 
+
+  getUserStories: () =>
     apiRequest('/user/getUserStory'),
 
-  ViewStory: (storyId:string) =>
+  ViewStory: (storyId: string) =>
     apiRequest(`/user/${storyId}/view`),
 
-  GetStoryViews : (storyId:string)=>
+  GetStoryViews: (storyId: string) =>
     apiRequest(`/user/${storyId}/viewers`),
 };
 
@@ -308,28 +312,28 @@ export const chatApi = {
       body: JSON.stringify(data),
     }),
 
-  fetchChats: () => 
+  fetchChats: () =>
     apiRequest('/api/chat'),
-    
-  createGroupChat: (users: string[], name: string) => 
+
+  createGroupChat: (users: string[], name: string) =>
     apiRequest('/api/chat/group', {
       method: 'POST',
       body: JSON.stringify({ users, name }),
     }),
-    
-  renameGroup: (chatId: string, chatName: string) => 
+
+  renameGroup: (chatId: string, chatName: string) =>
     apiRequest('/api/chat/rename', {
       method: 'PUT',
       body: JSON.stringify({ chatId, chatName }),
     }),
-    
-  removeFromGroup: (chatId: string, userId: string) => 
+
+  removeFromGroup: (chatId: string, userId: string) =>
     apiRequest('/api/chat/groupremove', {
       method: 'PUT',
       body: JSON.stringify({ chatId, userId }),
     }),
-    
-  addToGroup: (chatId: string, userId: string) => 
+
+  addToGroup: (chatId: string, userId: string) =>
     apiRequest('/api/chat/groupadd', {
       method: 'PUT',
       body: JSON.stringify({ chatId, userId }),
@@ -337,13 +341,13 @@ export const chatApi = {
 };
 
 export const messageApi = {
-  sendMessage: (content: string, chatId: string) => 
+  sendMessage: (content: string, chatId: string) =>
     apiRequest('/api/message', {
       method: 'POST',
       body: JSON.stringify({ content, chatId }),
     }),
-    
-  fetchMessages: (chatId: string) => 
+
+  fetchMessages: (chatId: string) =>
     apiRequest(`/api/message/${chatId}`),
 };
 

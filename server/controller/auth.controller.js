@@ -5,6 +5,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import otpGenerator from "otp-generator";
+import nodemailer from "nodemailer";
 dotenv.config();
 
 export const signup = async (req, res) => {
@@ -110,40 +111,80 @@ export const signup = async (req, res) => {
     }
   }
 };
-export const sendotp=async(req,res)=>{
-try{
-  console.log("inside send otp controller")
-    const {email}=req.body;
-    const  user=await User.findOne({email});
-    if(user){
-      console.log("returning");
-      return res.status(401).json({
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  },
+});
+
+export const sendotp = async (req, res) => {
+  try {
+    console.log("inside send otp controller");
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (user) {
+      console.log("User already exists, returning");
+      return res.status(200).json({
         success: false,
         message: `User is already registered`,
       });
     }
 
-    let otp=otpGenerator.generate(6,{
-      upperCaseAlphabets:false,
-      lowerCaseAlphabets:false,
-      specialChars:false,
-    })
-    console.log("otp generated ",otp)
-    const otpBOdy=await OTP.create({
-      email,otp
-    })
+    const otp = otpGenerator.generate(6, {
+      upperCaseAlphabets: false,
+      lowerCaseAlphabets: false,
+      specialChars: false,
+    });
+
+    console.log("Generated OTP: ", otp);
+
+    // Store in DB
+    await OTP.create({ email, otp });
+
+    // Send OTP via email
+    const mailOptions = {
+      from: `"Instagram" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Your OTP Code",
+      html: `
+  <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #fafafa; border-radius: 10px; max-width: 500px; margin: auto; border: 1px solid #e6e6e6;">
+    <h2 style="color: #262626;">Instagram Verification Code</h2>
+    <p style="color: #555;">Hi there,</p>
+    <p style="color: #555;">Use the following OTP to verify your email address and complete your sign-up process on <strong>Instagram</strong>:</p>
+      
+    <div style="text-align: center; margin: 20px 0;">
+      <span style="font-size: 32px; font-weight: bold; color: #4f46e5; letter-spacing: 2px;">${otp}</span>
+    </div>
+
+    <p style="color: #555;">This code is valid for the next 10 minutes. Please do not share it with anyone.</p>
+
+    <p style="margin-top: 30px; font-size: 14px; color: #999;">If you didn't request this, you can safely ignore this email.</p>
+
+    <p style="color: #999;">– The Instagram Team</p>
+  </div>
+`
+
+    };
+
+    await transporter.sendMail(mailOptions);
+
     return res.status(200).json({
-      success:true,
-      message:"otp sent successfully",
-      OTP:otp
-    })
-}catch(error){
-  return res.status(500).json({
-    success:false,
-    message:`somthing went wrong while sending otp and error is ${error}`
-  })
-}
+      success: true,
+      message: "OTP sent successfully to your email",
+    });
+  } catch (error) {
+    console.error("Error sending OTP: ", error);
+    return res.status(500).json({
+      success: false,
+      message: `Something went wrong while sending OTP. ${error.message}`,
+    });
+  }
 };
+
 export const login = async (req, res) => {
   try {
     const { identifier, password } = req.body;

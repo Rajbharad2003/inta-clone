@@ -17,6 +17,7 @@ const SignUp = () => {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
+  const [emailExists, setEmailExists] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -103,7 +104,12 @@ const SignUp = () => {
     
     try {
       // Send OTP to email
-      await authApi.sendOtp(email);
+      const respose = await authApi.sendOtp(email);
+
+      if(respose.success === false) {
+        setEmailExists(true);
+        return;
+      }
       
       setOtpSent(true);
       
@@ -207,6 +213,18 @@ const SignUp = () => {
             <p className="mt-2 text-gray-600 text-center">
               Sign up to see photos and videos from your friends.
             </p>
+            {emailExists && (
+            <p className="mt-2 text-red-600 text-center">
+              Login to your account. Email already exists.
+            </p>)}
+
+            {
+              otpSent && (
+                <p className="mt-2 text-green-600 text-center">
+                  We've sent a verification code to your email. Please check your inbox.
+                </p>
+              )
+            }
           </div>
           
           {/* Sign Up Form */}
@@ -224,7 +242,7 @@ const SignUp = () => {
                       className="h-11"
                       placeholder="First Name"
                       value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
+                      onChange={(e) => {setFirstName(e.target.value)}}
                     />
                   </div>
                   <div className="w-1/2">
@@ -250,7 +268,7 @@ const SignUp = () => {
                     className="h-11"
                     placeholder="Email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {setEmail(e.target.value) ; setEmailExists(false)}}
                   />
                 </div>
                 
@@ -320,17 +338,6 @@ const SignUp = () => {
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Enter the verification code sent to your email.{" "}
-                    <button
-                      type="button"
-                      className="text-instagram-primary"
-                      onClick={resendOtp}
-                      disabled={loading}
-                    >
-                      {loading ? "Sending..." : "Resend"}
-                    </button>
-                  </p>
                 </div>
                 
                 <Button
